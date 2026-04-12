@@ -1,0 +1,227 @@
+import React from 'react';
+import { SimulationParams } from '../engine/hydraulicEngine';
+import { Activity, Play, Settings2, Info, MapPin } from 'lucide-react';
+import { cn } from '../lib/utils';
+
+interface HydraulicSidebarProps {
+  params: SimulationParams;
+  setParams: (params: SimulationParams) => void;
+  runSim: () => void;
+}
+
+const REGIONS = {
+  western: {
+    name: '深圳西部 (Western)',
+    params: { A: 2698.815, C: 0.593, b: 11.03, n: 0.648 }
+  },
+  central: {
+    name: '深圳中部 (Central)',
+    params: { A: 2253.300, C: 0.647, b: 10.45, n: 0.627 }
+  },
+  eastern: {
+    name: '深圳东部 (Eastern)',
+    params: { A: 1914.800, C: 0.695, b: 9.84, n: 0.605 }
+  },
+  custom: {
+    name: '自定义 (其他城市)',
+    params: { A: 2000, C: 0.6, b: 10, n: 0.6 }
+  }
+};
+
+export default function HydraulicSidebar({ params, setParams, runSim }: HydraulicSidebarProps) {
+  const updateParam = (key: keyof SimulationParams, value: any) => {
+    setParams({ ...params, [key]: value });
+  };
+
+  const updateFormulaParam = (key: keyof SimulationParams['formulaParams'], value: number) => {
+    setParams({
+      ...params,
+      formulaParams: { ...params.formulaParams, [key]: value }
+    });
+  };
+
+  const handleRegionChange = (region: keyof typeof REGIONS) => {
+    setParams({
+      ...params,
+      region,
+      formulaParams: { ...REGIONS[region].params }
+    });
+  };
+
+  return (
+    <div className="w-80 bg-white border-l border-gray-200 flex flex-col h-full shadow-sm z-10">
+      <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+        <h2 className="font-bold text-gray-800 flex items-center gap-2">
+          <Activity size={18} className="text-blue-600" />
+          Hydraulic Engine
+        </h2>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        {/* Calculation Method */}
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+            <Settings2 size={14} />
+            Calculation Method
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => updateParam('method', 'rational')}
+              className={cn(
+                "py-2 px-3 text-xs font-medium rounded-lg border transition-all",
+                params.method === 'rational'
+                  ? "bg-blue-600 border-blue-600 text-white shadow-md"
+                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+              )}
+            >
+              Rational Method
+            </button>
+            <button
+              onClick={() => updateParam('method', 'constant')}
+              className={cn(
+                "py-2 px-3 text-xs font-medium rounded-lg border transition-all",
+                params.method === 'constant'
+                  ? "bg-blue-600 border-blue-600 text-white shadow-md"
+                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+              )}
+            >
+              Constant Flow
+            </button>
+          </div>
+        </div>
+
+        {/* Shenzhen Formula Parameters */}
+        {params.method === 'rational' && (
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <MapPin size={14} />
+                Region Selection
+              </label>
+              <select
+                value={params.region}
+                onChange={(e) => handleRegionChange(e.target.value as any)}
+                className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              >
+                {Object.entries(REGIONS).map(([key, region]) => (
+                  <option key={key} value={key}>{region.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
+              <div className="flex items-center gap-2 text-blue-800 font-semibold text-sm">
+                <Info size={14} />
+                Formula Parameters
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-medium text-blue-700 mb-1">Parameter A</label>
+                  <input
+                    type="number"
+                    value={params.formulaParams.A}
+                    onChange={e => updateFormulaParam('A', parseFloat(e.target.value) || 0)}
+                    className="w-full bg-white border border-blue-200 rounded-md px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-medium text-blue-700 mb-1">Parameter C</label>
+                  <input
+                    type="number"
+                    value={params.formulaParams.C}
+                    onChange={e => updateFormulaParam('C', parseFloat(e.target.value) || 0)}
+                    className="w-full bg-white border border-blue-200 rounded-md px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-medium text-blue-700 mb-1">Parameter b</label>
+                  <input
+                    type="number"
+                    value={params.formulaParams.b}
+                    onChange={e => updateFormulaParam('b', parseFloat(e.target.value) || 0)}
+                    className="w-full bg-white border border-blue-200 rounded-md px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-medium text-blue-700 mb-1">Parameter n</label>
+                  <input
+                    type="number"
+                    value={params.formulaParams.n}
+                    onChange={e => updateFormulaParam('n', parseFloat(e.target.value) || 0)}
+                    className="w-full bg-white border border-blue-200 rounded-md px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-2 border-t border-blue-100">
+                <div>
+                  <label className="block text-[11px] font-medium text-blue-700 mb-1">Return Period P (Years)</label>
+                  <input
+                    type="number"
+                    value={params.returnPeriod}
+                    onChange={e => updateParam('returnPeriod', parseFloat(e.target.value) || 1)}
+                    className="w-full bg-white border border-blue-200 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-medium text-blue-700 mb-1">折减系数 m (通常取1.2)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={params.delayCoefficient}
+                    onChange={e => updateParam('delayCoefficient', parseFloat(e.target.value) || 1)}
+                    className="w-full bg-white border border-blue-200 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+              
+              <div className="text-[10px] text-blue-600/80 leading-relaxed italic text-center">
+                q = {params.formulaParams.A}(1+{params.formulaParams.C}lgP) / (t+{params.formulaParams.b})^{params.formulaParams.n}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Constant Flow Parameters */}
+        {params.method === 'constant' && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Rainfall Intensity (mm/hr)</label>
+              <input
+                type="number"
+                value={params.rainfallIntensity}
+                onChange={e => updateParam('rainfallIntensity', parseFloat(e.target.value) || 0)}
+                className="w-full border border-gray-200 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* General Parameters */}
+        <div className="space-y-4 pt-4 border-t border-gray-100">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Simulation Duration (min)</label>
+            <input
+              type="number"
+              value={params.stormDuration}
+              onChange={e => updateParam('stormDuration', parseInt(e.target.value) || 60)}
+              className="w-full border border-gray-200 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 border-t border-gray-200 bg-gray-50">
+        <button
+          onClick={runSim}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-200 flex items-center justify-center gap-2 transition-all active:scale-95"
+        >
+          <Play size={18} fill="currentColor" />
+          Run Simulation
+        </button>
+      </div>
+    </div>
+  );
+}
