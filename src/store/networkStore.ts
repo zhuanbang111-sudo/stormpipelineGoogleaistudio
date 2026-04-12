@@ -3,6 +3,7 @@ import { Node, Link, Catchment, ToolType, SimulationResult, BackgroundFeature } 
 import { v4 as uuidv4 } from 'uuid'; // 用于生成唯一的ID
 import { runSimulation, SimulationParams } from '../engine/hydraulicEngine';
 import { PIPE_MATERIALS, DEFAULT_MATERIAL } from '../constants';
+import { calculatePolygonArea } from '../lib/utils';
 
 // 定义管网状态接口，包含所有的节点、管线和汇水区
 export interface NetworkState {
@@ -274,8 +275,8 @@ export function useNetworkStore() {
   const addCatchment = useCallback((polygon: [number, number][], outletNodeId: string) => {
     let newCatchment: Catchment | null = null;
     updateState(prev => {
-      // 简单的面积估算（这里为了演示，默认给了一个固定值，实际应用中应该根据多边形坐标计算真实面积）
-      const area = 1.5; // 默认 1.5 公顷
+      // 根据多边形坐标计算真实面积
+      const area = calculatePolygonArea(polygon);
 
       newCatchment = {
         id: uuidv4(),
@@ -297,7 +298,17 @@ export function useNetworkStore() {
   const updateCatchment = useCallback((id: string, updates: Partial<Catchment>) => {
     updateState(prev => ({
       ...prev,
-      catchments: prev.catchments.map(c => c.id === id ? { ...c, ...updates } : c)
+      catchments: prev.catchments.map(c => {
+        if (c.id === id) {
+          const newCatchment = { ...c, ...updates };
+          // 如果更新了多边形且没有显式更新面积，则重新计算面积
+          if (updates.polygon && updates.area === undefined) {
+            newCatchment.area = calculatePolygonArea(updates.polygon);
+          }
+          return newCatchment;
+        }
+        return c;
+      })
     }));
   }, [updateState]);
 

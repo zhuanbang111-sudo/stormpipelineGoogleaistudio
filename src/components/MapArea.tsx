@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Polyline, Polygon, useMapEvents, Toolt
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Node, Link, Catchment, ToolType, SimulationResult, BackgroundFeature } from '../types';
+import { calculatePolygonArea } from '../lib/utils';
 
 // 修复 Leaflet 默认图标在 React 中不显示的常见问题
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -371,10 +372,28 @@ export default function MapArea({
 
         {/* ==================== 渲染正在绘制中的汇水区 ==================== */}
         {drawingCatchmentPoints.length > 0 && (
-          <Polygon
-            positions={drawingCatchmentPoints}
-            pathOptions={{ color: '#22c55e', dashArray: '5, 5', fillOpacity: 0.1 }} // 虚线样式
-          />
+          <>
+            <Polygon
+              positions={drawingCatchmentPoints}
+              pathOptions={{ color: '#22c55e', dashArray: '5, 5', fillOpacity: 0.1 }} // 虚线样式
+            />
+            {drawingCatchmentPoints.length >= 3 && (
+              <Marker 
+                position={[
+                  drawingCatchmentPoints.reduce((sum, p) => sum + p[0], 0) / drawingCatchmentPoints.length,
+                  drawingCatchmentPoints.reduce((sum, p) => sum + p[1], 0) / drawingCatchmentPoints.length
+                ]} 
+                opacity={0} 
+                interactive={false}
+              >
+                <Tooltip permanent direction="center" className="bg-transparent border-none shadow-none text-[10px] font-bold text-green-800 p-0 text-center whitespace-nowrap" interactive={false}>
+                  <div style={{ textShadow: '1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff' }}>
+                    Drawing: {calculatePolygonArea(drawingCatchmentPoints)} ha
+                  </div>
+                </Tooltip>
+              </Marker>
+            )}
+          </>
         )}
 
         {/* ==================== 渲染管线 ==================== */}
