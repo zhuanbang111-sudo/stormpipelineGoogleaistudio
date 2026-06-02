@@ -7,6 +7,7 @@ compatibility_date = "2026-06-02"
 
 [assets]
 directory = "./dist"
+not_found_handling = "single-page-application"
 
 [vars]
 # Define build or runtime environment variables here if needed

@@ -1,4 +1,0 @@
-# SPA Routing Fallback for Cloudflare Pages
-# Redirects all sub-paths to index.html with a 200 status code
-
-/*    /index.html   200
