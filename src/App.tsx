@@ -169,6 +169,7 @@ export default function App() {
             updateNode={store.updateNode}
             updateCatchment={store.updateCatchment}
             mapType={store.simulationParams.mapType}
+            tiandituToken={store.simulationParams.tiandituToken}
           />
 
           {/* 底部工具栏组件 */}
@@ -299,6 +300,22 @@ export default function App() {
                 </select>
                 <p className="text-xs text-gray-500 mt-1">Select the base map for the design area.</p>
               </div>
+
+              {(store.simulationParams.mapType === 'tianditu_vec' || store.simulationParams.mapType === 'tianditu_img') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tianditu Token (天地图密钥)</label>
+                  <input 
+                    type="text"
+                    value={store.simulationParams.tiandituToken || ''}
+                    onChange={e => store.setSimulationParams({ ...store.simulationParams, tiandituToken: e.target.value })}
+                    placeholder="e97bd73ab261e619504c77adf4f61494"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    天地图在部署后可能需要域名绑定的 Token。如底图无法加载，请输入您在天地图官网申请的专属浏览器端/服务端 Token，或者将底图切换为 <b>OpenStreetMap</b>。
+                  </p>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Simulation Engine</label>
                 <select className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">

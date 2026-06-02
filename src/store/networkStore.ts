@@ -35,21 +35,32 @@ export function useNetworkStore() {
   
   // 模拟结果状态
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null); // 存储水力模拟的计算结果
-  const [simulationParams, setSimulationParams] = useState<SimulationParams>({
-    method: 'rational',
-    mapType: 'tianditu_vec',
-    rainfallIntensity: 50,
-    stormDuration: 120,
-    returnPeriod: 5,
-    delayCoefficient: 1.0,
-    region: 'western',
-    formulaParams: {
-      A: 2698.815,
-      C: 0.593,
-      b: 11.03,
-      n: 0.648
-    }
+  const [simulationParams, setSimulationParams] = useState<SimulationParams>(() => {
+    const savedToken = typeof window !== 'undefined' ? localStorage.getItem('tianditu_token') : null;
+    return {
+      method: 'rational',
+      mapType: 'tianditu_vec',
+      tiandituToken: savedToken || 'e97bd73ab261e619504c77adf4f61494',
+      rainfallIntensity: 50,
+      stormDuration: 120,
+      returnPeriod: 5,
+      delayCoefficient: 1.0,
+      region: 'western',
+      formulaParams: {
+        A: 2698.815,
+        C: 0.593,
+        b: 11.03,
+        n: 0.648
+      }
+    };
   });
+
+  // 监听并持久化天地图 Token 至本地存储
+  useEffect(() => {
+    if (simulationParams.tiandituToken) {
+      localStorage.setItem('tianditu_token', simulationParams.tiandituToken);
+    }
+  }, [simulationParams.tiandituToken]);
 
   // 新增：默认标高设置（用于同步设置地面标高和井底标高）
   const [defaultInvertElevation, setDefaultInvertElevation] = useState<number>(100);
