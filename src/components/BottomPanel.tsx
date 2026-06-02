@@ -29,7 +29,7 @@ export default function BottomPanel({ simulationResult, nodes, links, catchments
       <div 
         ref={nodeRef}
         className={cn(
-        "fixed bottom-4 right-84 bg-white border border-gray-200 shadow-2xl rounded-xl transition-all duration-300 z-[1000] flex flex-col overflow-hidden",
+        "fixed bottom-4 right-84 bg-white border border-gray-200 shadow-2xl rounded-xl transition-[width,height] duration-300 z-[1000] flex flex-col overflow-hidden",
         expanded ? "w-[800px] h-[500px]" : "w-64 h-12" // 根据展开状态动态调整尺寸
       )}>
         {/* 面板的头部（标题栏），点击可以切换展开/折叠状态 */}

@@ -5,7 +5,6 @@ import { calculatePeakRunoff, generateHydrograph } from './hydrology';
 export interface SimulationParams {
   method: 'rational' | 'constant'; // 计算方法：推理公式法 或 恒定强度法
   mapType?: 'tianditu_vec' | 'tianditu_img' | 'osm'; // 底图类型
-  tiandituToken?: string; // 天地图 Key Token
   rainfallIntensity: number; // 恒定降雨强度，单位：毫米/小时 (mm/hr)
   stormDuration: number; // 降雨持续时间，单位：分钟 (minutes)
   returnPeriod: number; // 重现期 P (年)

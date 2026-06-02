@@ -44,7 +44,7 @@ export default function ManholeListWindow({
       <div 
         ref={nodeRef}
         className={cn(
-          "fixed z-[1000] bg-white shadow-2xl border border-gray-200 rounded-lg flex flex-col overflow-hidden transition-all",
+          "fixed z-[1000] bg-white shadow-2xl border border-gray-200 rounded-lg flex flex-col overflow-hidden",
           isMinimized ? "h-10 w-64" : ""
         )}
         style={{ 

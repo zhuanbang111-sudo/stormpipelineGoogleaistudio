@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'; // 用于生成唯一的ID
 import { runSimulation, SimulationParams } from '../engine/hydraulicEngine';
 import { PIPE_MATERIALS, DEFAULT_MATERIAL } from '../constants';
 import { calculatePolygonArea } from '../lib/utils';
+import { Delaunay } from 'd3-delaunay';
 
 // 定义管网状态接口，包含所有的节点、管线和汇水区
 export interface NetworkState {
@@ -35,32 +36,21 @@ export function useNetworkStore() {
   
   // 模拟结果状态
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null); // 存储水力模拟的计算结果
-  const [simulationParams, setSimulationParams] = useState<SimulationParams>(() => {
-    const savedToken = typeof window !== 'undefined' ? localStorage.getItem('tianditu_token') : null;
-    return {
-      method: 'rational',
-      mapType: 'tianditu_vec',
-      tiandituToken: savedToken || 'e97bd73ab261e619504c77adf4f61494',
-      rainfallIntensity: 50,
-      stormDuration: 120,
-      returnPeriod: 5,
-      delayCoefficient: 1.0,
-      region: 'western',
-      formulaParams: {
-        A: 2698.815,
-        C: 0.593,
-        b: 11.03,
-        n: 0.648
-      }
-    };
-  });
-
-  // 监听并持久化天地图 Token 至本地存储
-  useEffect(() => {
-    if (simulationParams.tiandituToken) {
-      localStorage.setItem('tianditu_token', simulationParams.tiandituToken);
+  const [simulationParams, setSimulationParams] = useState<SimulationParams>({
+    method: 'rational',
+    mapType: 'tianditu_vec',
+    rainfallIntensity: 50,
+    stormDuration: 120,
+    returnPeriod: 5,
+    delayCoefficient: 1.0,
+    region: 'western',
+    formulaParams: {
+      A: 2698.815,
+      C: 0.593,
+      b: 11.03,
+      n: 0.648
     }
-  }, [simulationParams.tiandituToken]);
+  });
 
   // 新增：默认标高设置（用于同步设置地面标高和井底标高）
   const [defaultInvertElevation, setDefaultInvertElevation] = useState<number>(100);
@@ -365,6 +355,83 @@ export function useNetworkStore() {
     }));
   }, [updateState]);
 
+  /**
+   * 基于泰森多边形 (Voronoi) 自动为一个区域的所有 manhole 检查井节点生成相近的集水区/汇水区
+   */
+  const generateVoronoiCatchments = useCallback(() => {
+    const targetNodes = state.nodes.filter(n => n.type === 'manhole');
+    if (targetNodes.length < 3) {
+      alert("自动划分汇水区需要至少 3 个检查井（Manhole）节点进行空间计算！");
+      return;
+    }
+
+    try {
+      // 提取所有经纬度坐标为 Delaunay 计算所需的格式：[longitude, latitude] (即 [lng, lat])
+      // 为了对抗任何完全重合或直线对其的极端几何退化，添加微小的物理抗扰动 (不影响实际精度和匹配)
+      const points = targetNodes.map(n => [
+        n.lng + (Math.random() - 0.5) * 1e-9,
+        n.lat + (Math.random() - 0.5) * 1e-9
+      ] as [number, number]);
+
+      const delaunay = Delaunay.from(points);
+
+      // 计算现有节点的空间极大包围范围
+      const lats = targetNodes.map(n => n.lat);
+      const lngs = targetNodes.map(n => n.lng);
+      const minLat = Math.min(...lats);
+      const maxLat = Math.max(...lats);
+      const minLng = Math.min(...lngs);
+      const maxLng = Math.max(...lngs);
+
+      // 根据实际分布动态计算包围边界，防止裁切过于窄斜，最小提供 0.005 度的安全边际 (约 500米)
+      const latMargin = Math.max(0.005, (maxLat - minLat) * 0.4);
+      const lngMargin = Math.max(0.005, (maxLng - minLng) * 0.4);
+
+      const bounds = [
+        minLng - lngMargin,
+        minLat - latMargin,
+        maxLng + lngMargin,
+        maxLat + latMargin
+      ] as [number, number, number, number];
+
+      const voronoi = delaunay.voronoi(bounds);
+
+      const newCatchments: Catchment[] = [];
+      targetNodes.forEach((node, i) => {
+        const cellPolygon = voronoi.cellPolygon(i);
+        if (cellPolygon && cellPolygon.length >= 3) {
+          // 将 Voronoi 的 [lng, lat] 多边形序列投影映射回组件需要的 [lat, lng]
+          const polygon: [number, number][] = cellPolygon.map(pt => [pt[1], pt[0]]);
+          const area = calculatePolygonArea(polygon);
+
+          newCatchments.push({
+            id: uuidv4(),
+            name: `C-${node.name}`,
+            area,
+            runoffCoefficient: 0.8, // 预置经典下垫面雨阻系数
+            timeOfConcentration: 10, // 设定典型汇水时间 10 分钟
+            outletNodeId: node.id,
+            polygon
+          });
+        }
+      });
+
+      if (newCatchments.length === 0) {
+        alert("几何划分未生成有效集水单元，请确保您的检查井在地图上有一定范围的分布。");
+        return;
+      }
+
+      updateState(prev => ({
+        ...prev,
+        catchments: newCatchments
+      }));
+
+    } catch (err: any) {
+      console.error("Failed to generate Voronoi diagrams:", err);
+      alert("自动化划分计算失败: " + (err.message || err));
+    }
+  }, [state.nodes, updateState]);
+
   // 返回所有状态和操作函数，供组件使用
   return {
     nodes: state.nodes, // 所有的节点数据
@@ -376,6 +443,7 @@ export function useNetworkStore() {
     addCatchment, updateCatchment, deleteCatchment, // 汇水区操作函数
     addImportedData, // 导入数据函数
     clearBackgroundFeatures, // 清空底图要素函数
+    generateVoronoiCatchments, // 自动生成泰森多边形汇水区
     selectedTool, setSelectedTool, // 当前工具状态及设置函数
     selectedElement, setSelectedElement, // 当前选中元素状态及设置函数
     drawingLinkFrom, setDrawingLinkFrom, // 绘制管线状态

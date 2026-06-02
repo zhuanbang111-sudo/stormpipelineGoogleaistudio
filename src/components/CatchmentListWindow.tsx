@@ -12,6 +12,7 @@ interface CatchmentListWindowProps {
   selectedElement: { type: 'node' | 'link' | 'catchment', id: string } | null;
   setSelectedElement: (el: { type: 'node' | 'link' | 'catchment', id: string } | null) => void;
   onClose: () => void;
+  generateVoronoiCatchments: () => void;
 }
 
 export default function CatchmentListWindow({
@@ -20,7 +21,8 @@ export default function CatchmentListWindow({
   updateCatchment,
   selectedElement,
   setSelectedElement,
-  onClose
+  onClose,
+  generateVoronoiCatchments
 }: CatchmentListWindowProps) {
   const [size, setSize] = useState({ width: 750, height: 450 });
   const [isMinimized, setIsMinimized] = useState(false);
@@ -36,7 +38,7 @@ export default function CatchmentListWindow({
       <div 
         ref={nodeRef}
         className={cn(
-          "fixed z-[1000] bg-white shadow-2xl border border-gray-200 rounded-lg flex flex-col overflow-hidden transition-all",
+          "fixed z-[1000] bg-white shadow-2xl border border-gray-200 rounded-lg flex flex-col overflow-hidden",
           isMinimized ? "h-10 w-64" : ""
         )}
         style={{ 
@@ -63,6 +65,16 @@ export default function CatchmentListWindow({
             <span className="text-[10px] bg-blue-500 text-white px-1.5 py-0.5 rounded-full font-bold">
               {catchments.length}
             </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                generateVoronoiCatchments();
+              }}
+              className="ml-3 flex items-center gap-1 text-[10px] bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-2 rounded transition-colors border border-green-500 cursor-pointer shadow-sm"
+              title="根据现有检查井一键自动生成泰森多边形汇水区模板"
+            >
+              <Hexagon size={10} /> 一键自动划分
+            </button>
           </div>
           <div className="flex items-center gap-1">
             <button 

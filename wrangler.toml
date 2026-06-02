@@ -1,0 +1,10 @@
+# Cloudflare Pages Configuration File
+# Documentation: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+
+name = "stormflow-designer"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-06-02"
+
+[vars]
+# Define build or runtime environment variables here if needed
+NODE_VERSION = "20"

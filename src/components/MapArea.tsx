@@ -63,7 +63,6 @@ interface MapAreaProps {
   updateNode: (id: string, updates: Partial<Node>) => void; // 更新节点属性的回调函数（用于拖拽）
   updateCatchment: (id: string, updates: Partial<Catchment>) => void; // 更新汇水区属性的回调函数（用于编辑边界）
   mapType?: 'tianditu_vec' | 'tianditu_img' | 'osm'; // 底图类型
-  tiandituToken?: string; // 天地图 Key Token
 }
 
 /**
@@ -124,8 +123,7 @@ export default function MapArea({
   nodes, links, catchments, backgroundFeatures, selectedTool, selectedElement,
   drawingLinkFrom, drawingCatchmentPoints, simulationResult,
   onMapClick, onNodeClick, onLinkClick, onCatchmentClick,
-  updateNode, updateCatchment, mapType = 'tianditu_vec',
-  tiandituToken = 'e97bd73ab261e619504c77adf4f61494'
+  updateNode, updateCatchment, mapType = 'tianditu_vec'
 }: MapAreaProps) {
 
   // 局部状态：记录鼠标在屏幕上的位置（目前未使用，保留用于未来扩展）
@@ -190,11 +188,11 @@ export default function MapArea({
           <>
             <TileLayer
               attribution='&copy; <a href="http://www.tianditu.gov.cn/">天地图</a>'
-              url={`https://t{s}.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}&tk=${tiandituToken}`}
+              url="https://t{s}.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}&tk=e97bd73ab261e619504c77adf4f61494"
               subdomains={['0', '1', '2', '3', '4', '5', '6', '7']}
             />
             <TileLayer
-              url={`https://t{s}.tianditu.gov.cn/cva_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}&tk=${tiandituToken}`}
+              url="https://t{s}.tianditu.gov.cn/cva_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}&tk=e97bd73ab261e619504c77adf4f61494"
               subdomains={['0', '1', '2', '3', '4', '5', '6', '7']}
             />
           </>
@@ -204,11 +202,11 @@ export default function MapArea({
           <>
             <TileLayer
               attribution='&copy; <a href="http://www.tianditu.gov.cn/">天地图</a>'
-              url={`https://t{s}.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}&tk=${tiandituToken}`}
+              url="https://t{s}.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}&tk=e97bd73ab261e619504c77adf4f61494"
               subdomains={['0', '1', '2', '3', '4', '5', '6', '7']}
             />
             <TileLayer
-              url={`https://t{s}.tianditu.gov.cn/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}&tk=${tiandituToken}`}
+              url="https://t{s}.tianditu.gov.cn/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}&tk=e97bd73ab261e619504c77adf4f61494"
               subdomains={['0', '1', '2', '3', '4', '5', '6', '7']}
             />
           </>
